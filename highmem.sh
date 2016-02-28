@@ -37,9 +37,10 @@ usage () {
   Options:
 
   -h    --help  Display this help text
-  -m    --mem   Check for memory values higher than --size (Default: 50)
-  -s    --swap  Check for swap values higher than --size (Default: 50)
-
+  -m    --mem   Check for memory percentage >= size (Default: 50)
+  -s    --swap  Check for swap percentage >= size (Default: 50)
+        --size  Set the size value to check for (Default: 50)
+                
 EOF
 exit 0
 
