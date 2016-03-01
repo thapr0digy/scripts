@@ -22,8 +22,12 @@ while true
 done   
 
 # Set logging directories
-logdir=/var/log/sysstat
+logdir=/var/log/sa
 output=/tmp/highmem.log
+
+# Check for the file existing
+
+[ -e "$output" ] && rm $output
 
 # Function definitions
 usage () {
@@ -54,10 +58,11 @@ memorySearch () {
   do 
 
     if [ -e "$logdir/sa$i" ]; then
-        sar -r -f $logdir/sa$i | sed 's/ PM/PM/g' | head -n -1 | awk 'NR == 5 {print} $4 >= '$size' {print $0}' > $output.day$i
+        sar -r -f $logdir/sa$i | sed 's/ AM/AM/g;s/ PM/PM/g' | head -n -1 | awk 'NR == 1 {print} NR == 3 {print} $4 >= '$size' {print $0}' >> $output
+        echo -e "\n" >> $output
     fi
   
-    if [ ! -s "$output.day$i" ]; then
+    if [ ! -s "$output" ]; then
         echo -e "Day $i has no matches"
     fi
 
@@ -75,10 +80,11 @@ swapSearch () {
    do
                  
      if [ -e "$logdir/sa$i" ]; then
-         sar -S -f $logdir/sa$i | sed 's/ PM/PM/g' | head -n -1 | awk 'NR == 5 {print} $4 >= '$size' {print $0}' > $output.day$i
+         sar -S -f $logdir/sa$i | sed 's/ AM/AM/g;s/ PM/PM/g' | head -n -1 | awk 'NR == 1 {print} NR == 3 {print} $4 >= '$size' {print $0}' >> $output
+         echo -e "\n" > $output
      fi  
                        
-     if [ ! -s "$output.day$i" ]; then
+     if [ ! -s "$output" ]; then
          echo -e "Day $i has no matches\n"
      fi  
                            
@@ -95,3 +101,4 @@ swapSearch () {
 [ "$swap" = 1 ] && swapSearch 
 
 exit 0
+
