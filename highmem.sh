@@ -58,7 +58,7 @@ memorySearch () {
   do 
 
     if [ -e "$logdir/sa$i" ]; then
-        sar -r -f $logdir/sa$i | sed 's/ AM/AM/g;s/ PM/PM/g' | head -n -1 | awk 'NR == 1 {print} NR == 3 {print} $4 >= '$size' {print $0}' >> $output
+        sar -r -f $logdir/sa$i | sed 's/ AM/AM/g;s/ PM/PM/g' | head -n -1 | awk 'NR == 1 {print; printf "\n"} /used/ {print} $4 >= '$size' {print $0}' >> $output
         echo -e "\n" >> $output
     fi
   
@@ -80,7 +80,7 @@ swapSearch () {
    do
                  
      if [ -e "$logdir/sa$i" ]; then
-         sar -S -f $logdir/sa$i | sed 's/ AM/AM/g;s/ PM/PM/g' | head -n -1 | awk 'NR == 1 {print} NR == 3 {print} $4 >= '$size' {print $0}' >> $output
+         sar -S -f $logdir/sa$i | sed 's/ AM/AM/g;s/ PM/PM/g' | head -n -1 | awk 'NR == 1 {print; printf "\n"} /used/ {print} $4 >= '$size' {print $0}' >> $output
          echo -e "\n" >> $output
      fi  
                        
