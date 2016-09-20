@@ -1,7 +1,7 @@
 #!/bin/sh
 # Username and password are for any CTS login linked to the company's account
-USERNAME="31e002dd-b4d5-4b9a-941f-75c5c1851ede"
-PASSWORD="f91e2dae023cb788ec0d9f7f5c7c588510c90847b7a1dc209a12a7c605702b54"
+USERNAME=""
+PASSWORD=""
 # Alert to and from addresses are use to notify administrators when failures occur during log retrieval
 ALERTTOADDRESS=""
 ALERTFROMADDRESS="noreply@proofpoint.com"
