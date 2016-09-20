@@ -8,7 +8,7 @@ ALERTFROMADDRESS="noreply@proofpoint.com"
 # Determines where log file are downloaded. Defaults to the current directory.
 LOGDIR=`pwd`
 # Include Campaign information
-CAMPINFO="true"
+CAMPINFO="no"
 # Get the options
 OPTS=`getopt -o c:ht: --long "help"  -- "$@"`
 eval set -- "$OPTS"
@@ -22,6 +22,8 @@ while true
       esac
 done
 
+echo "CAMPAIGNID: $CAMPAIGNID"
+echo "THREATID: $THREATID"
 # Determines the amount of data retrieved the first time the script is run. Uses ISO8601 format - PT1H specifies the previous
 # hour's worth of data, PT10M specifies the previous 10 minutes. No more than two hours can be specified.
 LOGFILESUFFIX="forensics.log"
@@ -47,36 +49,42 @@ usage() {
 
 campaign() {
     echo "Retrieving data for $CAMPAIGNID"
-    STATUS=$(curl -w '%{http_code}' -o "$LOGDIR/$INTERVAL_SECS-$TMPFILESUFFIX" "https://tap-api-v2.proofpoint.com/v2/forensics?campaignId=$CAMPAIGNID" --user "$USERNAME:$PASSWORD" -s)
+    STATUS=$(curl -w '%{http_code}' -o "$LOGDIR/$INTERVAL_SECS-$CAMPAIGNID-$TMPFILESUFFIX" "https://tap-api-v2.proofpoint.com/v2/forensics?campaignId=$CAMPAIGNID" --user "$USERNAME:$PASSWORD" -s)
+    if [ $? -eq 0 ] && [ $STATUS = "200" ]; then
+      mv "$LOGDIR/$INTERVAL_SECS-$CAMPAIGNID-$TMPFILESUFFIX" "$LOGDIR/$INTERVAL_SECS-$CAMPAIGNID-$LOGFILESUFFIX"
+      echo "Retrieval successful. $LOGDIR/$INTERVAL_SECS-$CAMPAIGNID-$LOGFILESUFFIX created."
+      exit 0
+    fi
+    mv "$LOGDIR/$INTERVAL_SECS-$CAMPAIGNID-$TMPFILESUFFIX" "$LOGDIR/$INTERVAL_SECS-$CAMPAIGNID-$ERRORFILESUFFIX"
+    echo "Retrieving TAP Forensics for $CAMPAIGNID failed with error code $STATUS. Error was: " && cat "$LOGDIR/$INTERVAL_SECS-$CAMPAIGNID-$ERRORFILESUFFIX"
+    # | mailx -s 'Retrieving TAP SIEM logs failed!' -S "from=SIEM Retriever <$ALERTFROMADDRESS>" $ALERTTOADDRESS
+    echo "Retrieval unsuccessful. Failed with error code $STATUS."
+    exit 1
 }
 
 threat() {
-  if [ $CAMPINFO == "true" ]; then
-    echo "Retrieving data for $THREATID"
-    STATUS=$(curl -w '%{http_code}' -o "$LOGDIR/$INTERVAL_SECS-$TMPFILESUFFIX" "https://tap-api-v2.proofpoint.com/v2/forensics?threatId=$THREATID&includeCampaignForensics=true" --user "$USERNAME:$PASSWORD" -s)
+  if [ $CAMPINFO = "yes" ]; then
+    echo "Retrieving data for $THREATID and includeCampaignForensics"
+    STATUS=$(curl -w '%{http_code}' -o "$LOGDIR/$INTERVAL_SECS-$THREATID-$TMPFILESUFFIX" "https://tap-api-v2.proofpoint.com/v2/forensics?threatId=$THREATID&includeCampaignForensics=true" --user "$USERNAME:$PASSWORD" -s)
   else
-    echo "Retrieving data for $threatid"
-    STATUS=$(curl -w '%{http_code}' -o "$LOGDIR/$INTERVAL_SECS-$TMPFILESUFFIX" "https://tap-api-v2.proofpoint.com/v2/forensics?threatId=$THREATID" --user "$USERNAME:$PASSWORD" -s)
+    echo "Retrieving data for $THREATID"
+    STATUS=$(curl -w '%{http_code}' -o "$LOGDIR/$INTERVAL_SECS-$THREATID-$TMPFILESUFFIX" "https://tap-api-v2.proofpoint.com/v2/forensics?threatId=$THREATID" --user "$USERNAME:$PASSWORD" -s)
   fi
+  
+  # Check for the status and mv the temporary file to log file
+  if [ $? -eq 0 ] && [ $STATUS = "200" ]; then
+    mv "$LOGDIR/$INTERVAL_SECS-$THREATID-$TMPFILESUFFIX" "$LOGDIR/$INTERVAL_SECS-$THREATID-$LOGFILESUFFIX"
+    echo "Retrieval successful. $LOGDIR/$INTERVAL_SECS-$THREATID-$LOGFILESUFFIX created."
+    exit 0
+  fi
+  mv "$LOGDIR/$INTERVAL_SECS-$THREATID-$TMPFILESUFFIX" "$LOGDIR/$INTERVAL_SECS-$THREATID-$ERRORFILESUFFIX"
+  echo "Retrieving TAP Forensics for $THREATID failed with error code $STATUS. Error was: " && cat "$LOGDIR/$INTERVAL_SECS-$THREATID-$ERRORFILESUFFIX"
+  # | mailx -s 'Retrieving TAP SIEM logs failed!' -S "from=SIEM Retriever <$ALERTFROMADDRESS>" $ALERTTOADDRESS
+  echo "Retrieval unsuccessful. Failed with error code $STATUS."
+  exit 1
 }
 
 # Print help if there aren't any arguments
 # [ test case ] && function
-usage() if [ $# -eq 0 ] || [ $# -eq 2 ];
-campaign() if [ -n "$CAMPAIGNID" ];
-threat() if [ -n "$THREATID" ];
- 
-if [ $? -eq 0 ] && [ $STATUS = "200" ]; then
-    mv "$LOGDIR/$INTERVAL_SECS-$TMPFILESUFFIX" "$LOGDIR/$INTERVAL_SECS-$LOGFILESUFFIX"
-    echo "Retrieval successful. $LOGDIR/$INTERVAL_SECS-$LOGFILESUFFIX created."
-    exit 0
-fi
-if [ $? -eq 0 ] && [ $STATUS = "204" ]; then
-    echo "Retrieval successful. No new records found."
-    exit 0
-fi
-mv "$LOGDIR/$INTERVAL_SECS-$TMPFILESUFFIX" "$LOGDIR/$INTERVAL_SECS-$ERRORFILESUFFIX"
-echo "Retrieving TAP Forensics logs failed with error code $STATUS. Error was: " && cat "$LOGDIR/$INTERVAL_SECS-$ERRORFILESUFFIX"
-# | mailx -s 'Retrieving TAP SIEM logs failed!' -S "from=SIEM Retriever <$ALERTFROMADDRESS>" $ALERTTOADDRESS
-echo "Retrieval unsuccessful. Failed with error code $STATUS."
-exit 1
+[ -n "$CAMPAIGNID" ] && campaign;
+[ -n "$THREATID" ] && threat;
