@@ -61,6 +61,7 @@ threat() {
 }
 
 # Print help if there aren't any arguments
+# [ test case ] && function
 usage() if [ $# -eq 0 ] || [ $# -eq 2 ];
 campaign() if [ -n "$CAMPAIGNID" ];
 threat() if [ -n "$THREATID" ];
