@@ -18,14 +18,14 @@ my $uri = URI::Encode->new( { encode_reserved => 1 } );
 
 if($encode) {
     
-    print "Value: $encode\n"; 
+    print "\nValue: $encode\n\n"; 
     my $encoded = $uri->encode($encode);
     print "Encoded: $encoded\n";
     exit;
 
 } elsif($decode) { 
     
-    print "Value: $decode\n";
+    print "\nValue: $decode\n\n";
     my $decoded = $uri->decode($decode);
     print "Decoded: $decoded\n";
     exit;
