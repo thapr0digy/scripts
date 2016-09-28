@@ -10,8 +10,11 @@ my $host = $ARGV[0];
 my @responses;
 my $findip = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}';
 my $spaces = "    ";
+my $ip = $ARGV[1];
+my ($found,$hostrecord);
 
-print "\nDomain: $host\n\n";
+print "\nDomain: $host\n";
+print "Searching for IP: $ip\n\n";
 
 sub findRecord {
 
@@ -27,9 +30,15 @@ sub findRecord {
 		$spf = $1;
     	}
     }		
-	
+
+    if ($spf =~ /$ip/) {
+	$found = $spf;
+	$hostrecord = $search;
+    }	
+
     @includes = $spf =~ /include:(\S+)/smg;
-    if(!@includes) {
+
+    if (!@includes) {
 	--$count;
 	$spaces = "    " x $count;
     }
@@ -43,6 +52,8 @@ sub findRecord {
     }
 
     --$count;
+
 }
 
 findRecord($host, 2);
+print "Found IP\n----------------\n$hostrecord\n\t$found\n";
