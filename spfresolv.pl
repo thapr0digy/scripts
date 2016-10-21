@@ -1,4 +1,4 @@
-#!/opt/proofpoint/current/opt/perl/bin/perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
