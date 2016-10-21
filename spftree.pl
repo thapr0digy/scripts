@@ -9,13 +9,13 @@ use Data::Dumper qw(Dumper);
 
 my $host = $ARGV[0];
 my @responses;
-my $findip = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}';
+my $ip = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}';
 my $spaces = "    ";
-my $ip = $ARGV[1];
+#my $ip = $ARGV[1];
 my ($found,$hostrecord);
 
 print "\nDomain: $host\n";
-print "Searching for IP: $ip\n\n";
+#print "Searching for IP: $ip\n\n";
 
 sub findIPMatch {
     my ($checkip, $range) = @_;
@@ -34,6 +34,7 @@ sub findIPMatch {
     }
 
 }
+
 sub findRecord {
 
     my ($search, $count) = @_;
@@ -44,14 +45,13 @@ sub findRecord {
     	
     if ($reply) {
     	foreach my $rr ($reply->answer) {
-		next unless $rr->string =~ /(v=spf[^"]+)/;
+		next unless $rr->string =~ /(v=spf[\s\S]*[^)])/;
 		$spf = $1;
     	}
     }		
-    
     @ips = $spf =~ /(?:(?:ip[46]:)|(?:a:))(\S+)/smg;
-    print "IPS: $_ " foreach @ips;
-    print "\n";
+    #print "IPS: $_ " foreach @ips;
+    #print "\n";
     #foreach my $myiprange (@ips) {
     #	findIPMatch($ip, $myiprange);
     #} 
@@ -61,7 +61,7 @@ sub findRecord {
     }	
 
     @includes = $spf =~ /include:(\S+)/smg;
-
+    
     if (!@includes) {
 	--$count;
 	$spaces = "    " x $count;
@@ -70,7 +70,6 @@ sub findRecord {
     print "$spaces-> $spf\n\n";
 
     $spaces = "    " x $count++;
-
     foreach my $domain (@includes) {
 	findRecord($domain, $count);
     }
@@ -79,5 +78,5 @@ sub findRecord {
 
 }
 #findIPMatch("8.8.8.8","199.122.121.0/24");
-findRecord($host, 2);
-print "Found IP\n----------------\n$hostrecord\n\t$found\n";
+findRecord($host, 1);
+#print "Found IP\n----------------\n$hostrecord\n\t$found\n";
