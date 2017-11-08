@@ -1,6 +1,5 @@
 #!/bin/bash
 ## Reqaudit parser
-## Borrowed parts of script from William Hofferbert
 
 helps () {
 fold -s -w $(tput cols) << EOF
