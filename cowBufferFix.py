@@ -4,7 +4,7 @@ import subprocess,re,glob,mmap
 
 # Create list of agents and store in agentList
 
-agents = subprocess.Popen(('snapctl', 'list'), stdout=subprocess.PIPE)
+agents = subprocess.Popen(('snap***', 'list'), stdout=subprocess.PIPE)
 output = agents.communicate()[0]
 agentList = ' '.join(output.splitlines()).split()[0::2] 
 
@@ -13,10 +13,10 @@ print "\nAll agents:",agentList
 # Search for agents with a cowBuffer file already. Don't search for them.
 
 myAgents = []
-for file in glob.glob("/datto/config/keys/*.cowBuffer"):
+for file in glob.glob("/d****/config/keys/*.cowBuffer"):
 
         filename = file.rstrip(".cowBuffer")
-        filename = filename.lstrip("/datto/config/keys/")
+        filename = filename.lstrip("/d****/config/keys/")
         myAgents.append(filename)
 
 # Compare the lists and only search for those without a cowBuffer fix
@@ -33,7 +33,7 @@ print "Agents without cowBuffer fix:",newList,"\n"
 for agent in newList:
 
         print "Looking for matches for agent: " + agent
-        agentFilename = "/datto/config/keys/" + agent + ".log"
+        agentFilename = "/d****/config/keys/" + agent + ".log"
         agentLog = open(agentFilename, 'r')
 
         # Create mmap as this is much faster than loading whole agent log
@@ -48,7 +48,7 @@ for agent in newList:
 
         if m:
                 print "Found " + m.group(1) + " megabyte cow file!"
-                fname = "/datto/config/keys/" + agent + ".cowBuffer"
+                fname = "/d****/config/keys/" + agent + ".cowBuffer"
                 print "Creating file for agent " + agent + "..."
                 f = open(fname, 'w')
                 f.write("2000\n")
